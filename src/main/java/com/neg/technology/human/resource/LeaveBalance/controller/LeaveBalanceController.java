@@ -20,7 +20,7 @@ import java.util.List;
 
 @Tag(name = "Leave Balance Controller", description = "Operations related to leave balance management")
 @RestController
-@RequestMapping("/api/leave_balances")
+@RequestMapping("/api/")
 public class LeaveBalanceController {
 
     private final LeaveBalanceService leaveBalanceService;
@@ -45,14 +45,14 @@ public class LeaveBalanceController {
 
     @Operation(summary = "Create leave balance")
     @PostMapping("/create")
-    public ResponseEntity<LeaveBalanceResponse> createLeaveBalance(@Valid @RequestBody CreateLeaveBalanceRequest dto) {
-        return ResponseEntity.ok(leaveBalanceService.create(dto));
+    public ResponseEntity<LeaveBalanceResponse> createLeaveBalance(@Valid @RequestBody CreateLeaveBalanceRequest request) {
+        return ResponseEntity.ok(leaveBalanceService.create(request));
     }
 
     @Operation(summary = "Update leave balance")
     @PostMapping("/update")
-    public ResponseEntity<LeaveBalanceResponse> updateLeaveBalance(@Valid @RequestBody UpdateLeaveBalanceRequest dto) {
-        return leaveBalanceService.update(dto);
+    public ResponseEntity<LeaveBalanceResponse> updateLeaveBalance(@Valid @RequestBody UpdateLeaveBalanceRequest request) {
+        return leaveBalanceService.update(request);
     }
 
     @Operation(summary = "Delete leave balance")
