@@ -1,25 +1,25 @@
 package com.neg.technology.human.resource.department.model.entity;
 
 import com.neg.technology.human.resource.utility.AuditableEntity;
-import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.data.relational.core.mapping.Column;
 
-@Entity
-@Table(name = "department")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table("department") // R2DBC tablo adı
 public class Department extends AuditableEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column("name")
     private String name;
 
-    @Column(columnDefinition = "TEXT") //For long addresses
+    @Column("location")
     private String location;
 }

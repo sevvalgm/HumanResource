@@ -16,4 +16,8 @@ public class CreateDepartmentRequest {
     private String name;
 
     private String location;
+
+    // Reactive kullanımda Mono ile sarılacak, DTO değişmeyecek
+    // Örnek kullanım controller tarafında:
+    // Mono<CreateDepartmentRequest> requestMono
 }
