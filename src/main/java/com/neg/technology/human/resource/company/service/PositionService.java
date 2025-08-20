@@ -4,48 +4,46 @@ import com.neg.technology.human.resource.company.model.entity.Position;
 import com.neg.technology.human.resource.company.model.request.CreatePositionRequest;
 import com.neg.technology.human.resource.company.model.request.UpdatePositionRequest;
 import com.neg.technology.human.resource.company.model.response.PositionResponse;
-import com.neg.technology.human.resource.company.model.response.PositionResponseList;
 import com.neg.technology.human.resource.utility.module.entity.request.IdRequest;
 import com.neg.technology.human.resource.utility.module.entity.request.SalaryRequest;
 import com.neg.technology.human.resource.utility.module.entity.request.TitleRequest;
-import jakarta.validation.Valid;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
-import java.util.List;
-import java.util.Optional;
+import jakarta.validation.Valid;
+import java.math.BigDecimal;
 
 public interface PositionService {
-    PositionResponseList getAllPositions();
 
-    Optional<Position> findByTitle(String title);
+    Flux<PositionResponse> getAllPositions();
 
-    boolean existsByTitle(String title);
+    Mono<Position> findByTitle(String title);
 
-    List<Position> findByBaseSalaryGreaterThanEqual(java.math.BigDecimal salary);
+    Mono<Boolean> existsByTitle(String title);
 
-    Position save(Position position);
+    Flux<Position> findByBaseSalaryGreaterThanEqual(BigDecimal salary);
 
-    Optional<Position> findById(Long id);
+    Mono<Position> save(Position position);
 
-    List<Position> findAll();
+    Mono<Position> findById(Long id);
 
-    void deleteById(Long id);
+    Flux<Position> findAll();
 
-    Position update(Long id, Position position);
+    Mono<Void> deleteById(Long id);
 
-    boolean existsById(Long id);
+    Mono<Position> update(Long id, Position position);
 
-    PositionResponse getPositionById(IdRequest request);
+    Mono<Boolean> existsById(Long id);
 
-    PositionResponse createPosition(CreatePositionRequest request);
+    Mono<PositionResponse> getPositionById(IdRequest request);
 
-    PositionResponse updatePosition(UpdatePositionRequest request);
+    Mono<PositionResponse> createPosition(CreatePositionRequest request);
 
-    void deletePosition(@Valid IdRequest request);
+    Mono<PositionResponse> updatePosition(UpdatePositionRequest request);
 
-    PositionResponse getPositionByTitle(TitleRequest request);
+    Mono<Void> deletePosition(@Valid IdRequest request);
 
-    boolean existsByTitle(TitleRequest request);
+    Mono<PositionResponse> getPositionByTitle(TitleRequest request);
 
-    PositionResponseList getPositionsByBaseSalary(SalaryRequest request);
-
+    Mono<PositionResponseList> getPositionsByBaseSalary(SalaryRequest request);
 }

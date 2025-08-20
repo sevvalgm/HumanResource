@@ -4,25 +4,28 @@ import com.neg.technology.human.resource.company.model.request.CreatePositionReq
 import com.neg.technology.human.resource.company.model.request.UpdatePositionRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import reactor.core.publisher.Mono;
 
 @Service
-public class PositionValidator {
+public class PositionValidatorReactive {
 
-    public void validateCreate(CreatePositionRequest dto) {
+    public Mono<Void> validateCreate(CreatePositionRequest dto) {
         if (!StringUtils.hasText(dto.getTitle())) {
-            throw new IllegalArgumentException("Title must not be empty");
+            return Mono.error(new IllegalArgumentException("Title must not be empty"));
         }
         if (dto.getBaseSalary() != null && dto.getBaseSalary().signum() == -1) {
-            throw new IllegalArgumentException("Base salary must be zero or positive");
+            return Mono.error(new IllegalArgumentException("Base salary must be zero or positive"));
         }
+        return Mono.empty();
     }
 
-    public void validateUpdate(UpdatePositionRequest dto) {
+    public Mono<Void> validateUpdate(UpdatePositionRequest dto) {
         if (!StringUtils.hasText(dto.getTitle())) {
-            throw new IllegalArgumentException("Title must not be empty");
+            return Mono.error(new IllegalArgumentException("Title must not be empty"));
         }
         if (dto.getBaseSalary() != null && dto.getBaseSalary().signum() == -1) {
-            throw new IllegalArgumentException("Base salary must be zero or positive");
+            return Mono.error(new IllegalArgumentException("Base salary must be zero or positive"));
         }
+        return Mono.empty();
     }
 }

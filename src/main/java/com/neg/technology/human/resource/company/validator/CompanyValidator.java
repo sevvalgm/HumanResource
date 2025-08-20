@@ -5,33 +5,39 @@ import com.neg.technology.human.resource.company.model.request.UpdateCompanyRequ
 import com.neg.technology.human.resource.company.repository.CompanyRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import reactor.core.publisher.Mono;
 
 @Service
-public class CompanyValidator {
+public class CompanyValidatorReactive {
 
     private final CompanyRepository companyRepository;
 
-    public CompanyValidator(CompanyRepository companyRepository) {
+    public CompanyValidatorReactive(CompanyRepository companyRepository) {
         this.companyRepository = companyRepository;
     }
 
-    public void validateCreate(CreateCompanyRequest dto) {
+    public Mono<Void> validateCreate(CreateCompanyRequest dto) {
         if (!StringUtils.hasText(dto.getName())) {
-            throw new IllegalArgumentException("Company name must not be empty");
+            return Mono.error(new IllegalArgumentException("Company name must not be empty"));
         }
-        if (companyRepository.existsByName(dto.getName())) {
-            throw new IllegalArgumentException("Company name already exists");
-        }
+        return companyRepository.existsByName(dto.getName())
+                .flatMap(exists -> exists
+                        ? Mono.error(new IllegalArgumentException("Company name already exists"))
+                        : Mono.empty()
+                );
     }
 
-    public void validateUpdate(UpdateCompanyRequest dto) {
+    public Mono<Void> validateUpdate(UpdateCompanyRequest dto) {
         if (!StringUtils.hasText(dto.getName())) {
-            throw new IllegalArgumentException("Company name must not be empty");
+            return Mono.error(new IllegalArgumentException("Company name must not be empty"));
         }
-        companyRepository.findByName(dto.getName()).ifPresent(existing -> {
-            if (!existing.getId().equals(dto.getId())) {
-                throw new IllegalArgumentException("Company name already exists");
-            }
-        });
+        return companyRepository.findByName(dto.getName())
+                .flatMap(existing -> {
+                    if (!existing.getId().equals(dto.getId())) {
+                        return Mono.error(new IllegalArgumentException("Company name already exists"));
+                    }
+                    return Mono.empty();
+                })
+                .switchIfEmpty(Mono.empty());
     }
 }

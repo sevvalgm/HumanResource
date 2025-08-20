@@ -1,15 +1,14 @@
 package com.neg.technology.human.resource.company.repository;
 
 import com.neg.technology.human.resource.company.model.entity.Project;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
+import reactor.core.publisher.Mono;
 
 @Repository
-public interface ProjectRepository extends JpaRepository<Project, Long> {
+public interface ProjectRepository extends ReactiveCrudRepository<Project, Long> {
 
-    Optional<Project> findByName(String name);
+    Mono<Project> findByName(String name);
 
-    boolean existsByName(String name);
+    Mono<Boolean> existsByName(String name);
 }

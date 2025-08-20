@@ -3,7 +3,6 @@ package com.neg.technology.human.resource.company.model.entity;
 import com.neg.technology.human.resource.utility.AuditableEntity;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.math.BigDecimal;
 
 @Entity

@@ -6,20 +6,22 @@ import com.neg.technology.human.resource.company.model.response.CompanyResponse;
 import com.neg.technology.human.resource.company.model.response.CompanyResponseList;
 import com.neg.technology.human.resource.company.model.request.CompanyIdRequest;
 import com.neg.technology.human.resource.utility.module.entity.request.NameRequest;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 public interface CompanyService {
 
-    CompanyResponse createCompany(CreateCompanyRequest request);
+    Mono<CompanyResponse> createCompany(CreateCompanyRequest request);
 
-    CompanyResponse updateCompany(UpdateCompanyRequest request);
+    Mono<CompanyResponse> updateCompany(UpdateCompanyRequest request);
 
-    void deleteCompany(CompanyIdRequest request);
+    Mono<Void> deleteCompany(CompanyIdRequest request);
 
-    CompanyResponseList getAllCompanies();
+    Flux<CompanyResponse> getAllCompanies();
 
-    CompanyResponse getCompanyById(CompanyIdRequest request);
+    Mono<CompanyResponse> getCompanyById(CompanyIdRequest request);
 
-    CompanyResponse getCompanyByName(NameRequest request);
+    Mono<CompanyResponse> getCompanyByName(NameRequest request);
 
-    boolean existsByName(NameRequest request);
+    Mono<Boolean> existsByName(NameRequest request);
 }
