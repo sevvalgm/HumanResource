@@ -6,6 +6,7 @@ import com.neg.technology.human.resource.department.service.DepartmentService;
 import com.neg.technology.human.resource.utility.module.entity.request.NameRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import reactor.core.publisher.Mono;
 
 @Service
 public class DepartmentValidator {
@@ -16,30 +17,43 @@ public class DepartmentValidator {
         this.departmentService = departmentService;
     }
 
-    public void validateCreate(CreateDepartmentRequest dto) {
+    public Mono<Void> validateCreate(CreateDepartmentRequest dto) {
         if (!StringUtils.hasText(dto.getName())) {
-            throw new IllegalArgumentException("Department name must not be empty");
+            return Mono.error(new IllegalArgumentException("Department name must not be empty"));
         }
+
         NameRequest nameRequest = new NameRequest();
         nameRequest.setName(dto.getName());
-        if (departmentService.existsByName(nameRequest)) {
-            throw new IllegalArgumentException("Department name already exists");
-        }
+
+        return departmentService.existsByName(nameRequest)
+                .flatMap(exists -> {
+                    if (exists) {
+                        return Mono.error(new IllegalArgumentException("Department name already exists"));
+                    }
+                    return Mono.empty();
+                });
     }
 
-    public void validateUpdate(UpdateDepartmentRequest dto) {
+    public Mono<Void> validateUpdate(UpdateDepartmentRequest dto) {
         if (!StringUtils.hasText(dto.getName())) {
-            throw new IllegalArgumentException("Department name must not be empty");
+            return Mono.error(new IllegalArgumentException("Department name must not be empty"));
         }
+
         NameRequest nameRequest = new NameRequest();
         nameRequest.setName(dto.getName());
 
-        if (departmentService.existsByName(nameRequest)) {
-            // Servis getDepartmentByName ile mevcut department'ı çekiyoruz
-            var existing = departmentService.getDepartmentByName(nameRequest);
-            if (!existing.getId().equals(dto.getId())) {
-                throw new IllegalArgumentException("Department name already exists");
-            }
-        }
+        return departmentService.existsByName(nameRequest)
+                .flatMap(exists -> {
+                    if (exists) {
+                        return departmentService.getDepartmentByName(nameRequest)
+                                .flatMap(existing -> {
+                                    if (!existing.getId().equals(dto.getId())) {
+                                        return Mono.error(new IllegalArgumentException("Department name already exists"));
+                                    }
+                                    return Mono.empty();
+                                });
+                    }
+                    return Mono.empty();
+                });
     }
 }

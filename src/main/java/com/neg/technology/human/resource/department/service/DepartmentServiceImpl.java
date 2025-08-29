@@ -11,10 +11,13 @@ import com.neg.technology.human.resource.utility.Logger;
 import com.neg.technology.human.resource.utility.module.entity.request.IdRequest;
 import com.neg.technology.human.resource.utility.module.entity.request.NameRequest;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 public class DepartmentServiceImpl implements DepartmentService {
-    public static final String MESSAGE ="Department";
+
+    public static final String MESSAGE = "Department";
     private final DepartmentRepository departmentRepository;
 
     public DepartmentServiceImpl(DepartmentRepository departmentRepository) {
@@ -22,63 +25,65 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
-    public DepartmentResponse createDepartment(CreateDepartmentRequest request) {
+    public Mono<DepartmentResponse> createDepartment(CreateDepartmentRequest request) {
         Department department = Department.builder()
                 .name(request.getName())
                 .location(request.getLocation())
                 .build();
-        Department saved = departmentRepository.save(department);
-        Logger.logCreated(Department.class, saved.getId(), saved.getName());
-        return toResponse(saved);
+
+        return departmentRepository.save(department)
+                .doOnSuccess(saved -> Logger.logCreated(Department.class, saved.getId(), saved.getName()))
+                .map(this::toResponse);
     }
 
     @Override
-    public DepartmentResponse updateDepartment(UpdateDepartmentRequest request) {
-        Department existing = departmentRepository.findById(request.getId())
-                .orElseThrow(() -> new ResourceNotFoundException(MESSAGE, request.getId()));
-        existing.setName(request.getName());
-        existing.setLocation(request.getLocation());
-        Department updated = departmentRepository.save(existing);
-        Logger.logUpdated(Department.class, updated.getId(), updated.getName());
-        return toResponse(updated);
+    public Mono<DepartmentResponse> updateDepartment(UpdateDepartmentRequest request) {
+        return departmentRepository.findById(request.getId())
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException(MESSAGE, request.getId())))
+                .flatMap(existing -> {
+                    existing.setName(request.getName());
+                    existing.setLocation(request.getLocation());
+                    return departmentRepository.save(existing)
+                            .doOnSuccess(updated -> Logger.logUpdated(Department.class, updated.getId(), updated.getName()));
+                })
+                .map(this::toResponse);
     }
 
     @Override
-    public void deleteDepartment(IdRequest request) {
-        if (!departmentRepository.existsById(request.getId())) {
-            throw new ResourceNotFoundException(MESSAGE, request.getId());
-        }
-        departmentRepository.deleteById(request.getId());
-        Logger.logDeleted(Department.class, request.getId());
+    public Mono<Void> deleteDepartment(IdRequest request) {
+        return departmentRepository.existsById(request.getId())
+                .flatMap(exists -> {
+                    if (!exists) return Mono.error(new ResourceNotFoundException(MESSAGE, request.getId()));
+                    return departmentRepository.deleteById(request.getId())
+                            .doOnSuccess(unused -> Logger.logDeleted(Department.class, request.getId()));
+                });
     }
 
     @Override
-    public DepartmentResponse getDepartmentById(IdRequest request) {
-        Department department = departmentRepository.findById(request.getId())
-                .orElseThrow(() -> new ResourceNotFoundException(MESSAGE, request.getId()));
-        return toResponse(department);
+    public Mono<DepartmentResponse> getDepartmentById(IdRequest request) {
+        return departmentRepository.findById(request.getId())
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException(MESSAGE, request.getId())))
+                .map(this::toResponse);
     }
 
     @Override
-    public DepartmentResponse getDepartmentByName(NameRequest request) {
-        Department department = departmentRepository.findByName(request.getName())
-                .orElseThrow(() -> new ResourceNotFoundException(MESSAGE, request.getName()));
-        return toResponse(department);
+    public Mono<DepartmentResponse> getDepartmentByName(NameRequest request) {
+        return departmentRepository.findByName(request.getName())
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException(MESSAGE, request.getName())))
+                .map(this::toResponse);
     }
 
     @Override
-    public boolean existsByName(NameRequest request) {
+    public Mono<Boolean> existsByName(NameRequest request) {
         return departmentRepository.existsByName(request.getName());
     }
 
     @Override
-    public DepartmentResponseList getAllDepartments() {
-        return new DepartmentResponseList(
-                departmentRepository.findAll()
-                        .stream()
-                        .map(this::toResponse)
-                        .toList()
-        );
+    public Mono<DepartmentResponseList> getAllDepartments() {
+        return departmentRepository.findAll()
+                .map(this::toResponse)
+                .collectList()
+                .map(DepartmentResponseList::new);
     }
 
     // ----------------- UTILITY -----------------
