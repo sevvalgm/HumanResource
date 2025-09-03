@@ -31,7 +31,7 @@ public class ProjectController {
     @ApiResponse(responseCode = "200", description = "Successfully retrieved list")
     @PostMapping("/getAll")
     public Mono<ResponseEntity<ProjectResponseList>> getAllProjects() {
-        return projectService.getAllProjects() // Mono<ProjectResponseList>
+        return projectService.getAllProjects()
                 .map(ResponseEntity::ok);
     }
 
@@ -39,7 +39,7 @@ public class ProjectController {
     @ApiResponse(responseCode = "200", description = "Project found")
     @PostMapping("/getById")
     public Mono<ResponseEntity<ProjectResponse>> getProjectById(@Valid @RequestBody ProjectIdRequest request) {
-        return projectService.getProjectById(request) // Mono<ProjectResponse>
+        return projectService.getProjectById(request)
                 .map(ResponseEntity::ok);
     }
 
@@ -47,7 +47,7 @@ public class ProjectController {
     @ApiResponse(responseCode = "200", description = "Project found")
     @PostMapping("/getByName")
     public Mono<ResponseEntity<ProjectResponse>> getProjectByName(@Valid @RequestBody NameRequest request) {
-        return projectService.getProjectByName(request) // Mono<ProjectResponse>
+        return projectService.getProjectByName(request)
                 .map(ResponseEntity::ok);
     }
 
@@ -55,8 +55,8 @@ public class ProjectController {
     @ApiResponse(responseCode = "200", description = "Project successfully created")
     @PostMapping("/create")
     public Mono<ResponseEntity<ProjectResponse>> createProject(@Valid @RequestBody CreateProjectRequest request) {
-        projectValidator.validateCreate(request);
-        return projectService.createProject(request) // Mono<ProjectResponse>
+        return projectValidator.validateCreate(request) // Mono<Void>
+                .then(projectService.createProject(request)) // Mono<ProjectResponse>
                 .map(ResponseEntity::ok);
     }
 
@@ -64,15 +64,16 @@ public class ProjectController {
     @ApiResponse(responseCode = "200", description = "Project successfully updated")
     @PostMapping("/update")
     public Mono<ResponseEntity<ProjectResponse>> updateProject(@Valid @RequestBody UpdateProjectRequest request) {
-        projectValidator.validateUpdate(request, request.getId());
-        return projectService.updateProject(request) // Mono<ProjectResponse>
+        return projectValidator.validateUpdate(request, request.getId()) // Mono<Void>
+                .then(projectService.updateProject(request)) // Mono<ProjectResponse>
                 .map(ResponseEntity::ok);
     }
+
     @Operation(summary = "Delete project", description = "Deletes the project with the specified ID.")
     @ApiResponse(responseCode = "204", description = "Project successfully deleted")
     @PostMapping("/delete")
     public Mono<ResponseEntity<Void>> deleteProject(@Valid @RequestBody ProjectIdRequest request) {
-        return projectService.deleteProject(request) // Mono<Void>
+        return projectService.deleteProject(request)
                 .then(Mono.just(ResponseEntity.noContent().build()));
     }
 
@@ -80,7 +81,7 @@ public class ProjectController {
     @ApiResponse(responseCode = "200", description = "Boolean result indicating existence")
     @PostMapping("/existsByName")
     public Mono<ResponseEntity<Boolean>> existsByName(@Valid @RequestBody NameRequest request) {
-        return projectService.existsByName(request) // Mono<Boolean>
+        return projectService.existsByName(request)
                 .map(ResponseEntity::ok);
     }
 }

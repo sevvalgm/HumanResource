@@ -57,9 +57,27 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
                 .orElseThrow(() -> new ResourceNotFoundException("Leave Type", dto.getLeaveTypeId()));
 
         Employee approver = null;
-        if(dto.getApprovedById() != null){
+        if (dto.getApprovedById() != null) {
             approver = employeeRepository.findById(dto.getApprovedById())
                     .orElseThrow(() -> new ResourceNotFoundException("Approver Employee", dto.getApprovedById()));
+        }
+
+        if (dto.getEndDate().isBefore(dto.getStartDate())) {
+            throw new IllegalArgumentException("İzin bitiş tarihi başlangıç tarihinden önce olamaz.");
+        }
+
+        if (dto.getStartDate().isBefore(java.time.LocalDate.now())) {
+            throw new IllegalArgumentException("Geçmiş tarihli izin oluşturulamaz.");
+        }
+
+        List<LeaveRequest> overlapping = leaveRequestRepository.findOverlappingRequests(
+                dto.getEmployeeId(),
+                dto.getStartDate(),
+                dto.getEndDate()
+        );
+
+        if (!overlapping.isEmpty()) {
+            throw new IllegalArgumentException("Çalışanın mevcut izni bitmeden yeni izin başlatılamaz.");
         }
 
         LeaveRequest entity = LeaveRequestMapper.toEntity(dto, employee, leaveType, approver);
@@ -93,8 +111,31 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
                     .orElseThrow(() -> new ResourceNotFoundException("Approver Employee", dto.getApprovedById()));
         }
 
-        LeaveRequestMapper.updateEntity(existing, dto, employee, leaveType, approver);
+        if (dto.getEndDate().isBefore(dto.getStartDate())) {
+            throw new IllegalArgumentException("İzin bitiş tarihi başlangıç tarihinden önce olamaz.");
+        }
 
+        if (dto.getStartDate().isBefore(java.time.LocalDate.now())) {
+            throw new IllegalArgumentException("Geçmiş tarihli izin güncellenemez.");
+        }
+
+        Long employeeId = dto.getEmployeeId() != null ? dto.getEmployeeId() : existing.getEmployee().getId();
+
+        List<LeaveRequest> overlapping = leaveRequestRepository.findOverlappingRequests(
+                employeeId,
+                dto.getStartDate(),
+                dto.getEndDate()
+        );
+
+        overlapping = overlapping.stream()
+                .filter(req -> !req.getId().equals(existing.getId()))
+                .toList();
+
+        if (!overlapping.isEmpty()) {
+            throw new IllegalArgumentException("Çalışanın mevcut izni bitmeden yeni izin başlatılamaz.");
+        }
+
+        LeaveRequestMapper.updateEntity(existing, dto, employee, leaveType, approver);
         LeaveRequest updated = leaveRequestRepository.save(existing);
 
         Logger.logUpdated(LeaveRequest.class, updated.getId(), "LeaveRequest");
